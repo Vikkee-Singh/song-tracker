@@ -13,7 +13,12 @@ module.exports = {
     async register (req, res) {
         try {
             const user = await User.create(req.body)
-            res.send(user.toJSON())
+            // res.send(user.toJSON())  
+            const userJson = user.toJSON()
+            res.send({
+                user: userJson,
+                token: jwtsignUser(userJson)
+            })     
         } catch (err) {
             res.status(400).send({
                 error: 'This email account is allready in use.'
@@ -34,15 +39,18 @@ module.exports = {
                     error: 'The login information was incorrect.'
                 }) 
             }
-            const isPasswordValid = password === user.password
+            const isPasswordValid = await user.comparePassword(password);
             if (!isPasswordValid) {
                 return res.status(403).send({
                     error: 'Password is incorrect.'
                 }) 
             }
-            const userJson = user.toJSON
-            res.send(user.toJSON())         
-        } catch (error) {
+            const userJson = user.toJSON()
+            res.send({
+                user: userJson,
+                token: jwtsignUser(userJson)
+            })         
+        } catch (err) {
             res.status(500).send({
                 error: 'An error has occured trying to log in'
             })
